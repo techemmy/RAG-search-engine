@@ -58,10 +58,10 @@ class InvertedIndex:
             )
         
     def get_term_frequency(self, doc_id, term) -> int:
-        split_term = tokenize(term)
+        tokens = tokenize(term)
 
-        if len(split_term) != 1:
-            raise ValueError("Term must be a single word")
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
 
         if (doc_id not in self.term_frequencies) or (
             term not in self.term_frequencies[doc_id]
