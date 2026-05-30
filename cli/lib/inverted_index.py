@@ -56,7 +56,7 @@ class InvertedIndex:
             raise FileNotFoundError(
                 "Index files not found. Please build the index first."
             )
-        
+
     def get_term_frequency(self, doc_id, term) -> int:
         tokens = tokenize(term)
 
@@ -71,7 +71,7 @@ class InvertedIndex:
         return self.term_frequencies[doc_id][term]
 
     def get_idf(self, term: str) -> float:
-        tokens = tokenize(term)
+        tokens = preprocess_text(term)
 
         if len(tokens) != 1:
             raise ValueError("term must be a single token")
@@ -80,10 +80,22 @@ class InvertedIndex:
         doc_count = len(self.docmap)
         term_doc_count = len(self.get_documents(token))
 
-        print(f"Total documents: {doc_count}")
-        print(f"Documents containing '{term}': {term_doc_count}")
+        # print(f"Total documents: {doc_count}")
+        # print(f"Documents containing '{term}': {term_doc_count}")
 
         return math.log((doc_count + 1) / (term_doc_count + 1))
+
+    def get_bm25_idf(self, term: str) -> float:
+        tokens = preprocess_text(term)
+
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+
+        token = tokens[0]
+        doc_count = len(self.docmap)
+        term_doc_count = len(self.get_documents(token))
+
+        return math.log((doc_count - term_doc_count + 0.5) / (term_doc_count + 0.5) + 1)
 
 
 def build_command() -> None:
@@ -121,3 +133,20 @@ def get_idf_command(term: str) -> float:
     idx = InvertedIndex()
     idx.load()
     return idx.get_idf(term)
+
+
+def get_tfidf_command(doc_id: int, term: str) -> float:
+    idx = InvertedIndex()
+    idx.load()
+
+    tf = idx.get_term_frequency(doc_id, term)
+    idf = idx.get_idf(term)
+
+    return tf * idf
+
+
+def bm25_idf_command(term: str) -> float:
+    idx = InvertedIndex()
+    idx.load()
+
+    return idx.get_bm25_idf(term)
